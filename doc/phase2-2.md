@@ -56,12 +56,26 @@ sequenceDiagram
 
 ## 実装のポイント（Slack Socket Modeの場合）
 
+> [!IMPORTANT]
+> セキュリティ上の観点から、トークン等の機密情報は直接コード内に記述せず、`.env` ファイルなどを使用して環境変数から読み込むことを推奨します。
+> 事前に `pip install python-dotenv` でライブラリをインストールし、同じ階層に以下の内容で `.env` ファイルを作成してください。
+> 
+> ```ini
+> SLACK_BOT_TOKEN=xoxb-your-bot-token
+> SLACK_APP_TOKEN=xapp-your-app-token
+> ```
+
 ```python
 import os
+from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-app = App(token="xoxb-your-bot-token")
+# .envファイルから環境変数を読み込む
+load_dotenv()
+
+# 環境変数のBot Tokenでアプリを初期化
+app = App(token=os.environ.get("SLACK_BOT_TOKEN"))
 
 @app.message("")  # 全メッセージに反応
 def handle_message(message, say):
@@ -79,7 +93,8 @@ def handle_message(message, say):
     )
 
 if __name__ == "__main__":
-    handler = SocketModeHandler(app, "xapp-your-app-token")
+    # 環境変数のApp TokenでSocket Modeハンドラーを起動
+    handler = SocketModeHandler(app, os.environ.get("SLACK_APP_TOKEN"))
     handler.start()
 ```
 
